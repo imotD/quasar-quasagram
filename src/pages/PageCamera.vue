@@ -47,7 +47,7 @@
           dense
         >
           <template v-slot:append>
-            <q-btn round dense flat icon="location_on" />
+            <q-btn round dense flat icon="location_on" @click="getLocation"/>
           </template>
         </q-input>
       </div>
@@ -149,6 +149,27 @@ export default {
       }
       return new Blob([u8arr], { type: mime });
     },
+    getLocation() {
+      navigator.geolocation.getCurrentPosition(position => {
+        this.getCityandCountry(position)
+      }, err => {
+        console.log("🚀 ~ file: PageCamera.vue:156 ~ getLocation ~ err", err)        
+      },{ timeout: 700 })
+    },
+    getCityandCountry (position){
+      let apiUrl = `https://geocode.xyz/${position.coords.latitude},${position.coords.longitude}?json=1&auth=244420314247103256360x125096`
+      this.$axios.get(apiUrl).then(result => {
+        this.locationSuccess(result)
+      }).catch(err => {
+        console.log("🚀 ~ file: PageCamera.vue:164 ~ this.$axios.get ~ err", err)
+      })
+    },
+    locationSuccess (result) {
+      this.post.location = result.data.city
+      if (result.data.country){
+        this.post.location += `, ${result.data.country}`
+      }
+    }
   },
 };
 </script>
