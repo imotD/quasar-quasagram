@@ -82,6 +82,11 @@ export default {
   mounted() {
     this.initCamera();
   },
+  beforeDestroy () {
+    if(this.hasCameraSupport){
+      this.disableCamera()
+    }
+  },
   methods: {
     initCamera() {
       navigator.mediaDevices
@@ -107,6 +112,7 @@ export default {
 
       this.imageCaptured = true;
       this.post.photo = this.dataURltoBlob(canvas.toDataURL());
+      this.disableCamera()
     },
     captureImageFallback(file) {
       this.post.photo = file;
@@ -126,6 +132,11 @@ export default {
         img.src = event.target.result;
       };
       reader.readAsDataURL(file);
+    },
+    disableCamera () {
+      this.$refs.video.srcObject.getVideoTracks().forEach(track => {
+        track.stop()
+      })
     },
     dataURltoBlob(dataurl) {
       var arr = dataurl.split(","),
