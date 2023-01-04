@@ -161,7 +161,7 @@ export default {
       this.$axios.get(apiUrl).then(result => {
         this.locationSuccess(result)
       }).catch(err => {
-        console.log("🚀 ~ file: PageCamera.vue:164 ~ this.$axios.get ~ err", err)
+        this.locationError()
       })
     },
     locationSuccess (result) {
@@ -169,6 +169,12 @@ export default {
       if (result.data.country){
         this.post.location += `, ${result.data.country}`
       }
+    },
+    locationError (){
+      this.$q.dialog({
+        title: 'Error',
+        message: 'Could not find your location.'
+      })
     }
   },
 };
