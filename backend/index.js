@@ -1,34 +1,35 @@
+// CONFIG - DEPENDENCIES
 const express = require("express");
 const app = express();
 const port = process.env.PORT || 3000;
 
-// endpoint POST
-app.get("/post", (req, res) => {
-  let posts = [
-    {
-      id: 1,
-      caption: "Swiss Mountain",
-      date: 1671343003981,
-      location: "Tanah Abang, Indonesia",
-      imageUrl: "https://cdn.quasar.dev/img/mountains.jpg",
-    },
-    {
-      id: 2,
-      caption: "Swiss Mountain",
-      date: 1671343003981,
-      location: "Tanah Abang, Indonesia",
-      imageUrl: "https://cdn.quasar.dev/img/mountains.jpg",
-    },
-    {
-      id: 3,
-      caption: "Swiss Mountain",
-      date: 1671343003981,
-      location: "Tanah Abang, Indonesia",
-      imageUrl: "https://cdn.quasar.dev/img/mountains.jpg",
-    },
-  ];
+const { initializeApp, cert } = require("firebase-admin/app");
+const { getFirestore } = require("firebase-admin/firestore");
 
-  res.send(posts);
+// CONFIG - FIREBASE
+const serviceAccount = require("./serviceAccountKey.json");
+
+initializeApp({
+  credential: cert(serviceAccount),
+});
+
+const db = getFirestore();
+
+// CONFIG - ENDPOINT POST
+app.get("/posts", (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+
+  let posts = [];
+
+  db.collection("posts")
+    .orderBy("date", "desc")
+    .get()
+    .then((snapshot) => {
+      snapshot.forEach((doc) => {
+        posts.push(doc.data());
+      });
+      res.send(posts);
+    });
 });
 
 app.listen(port);
