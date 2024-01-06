@@ -48,12 +48,25 @@
           dense
         >
           <template v-slot:append>
-            <q-btn v-if="!locationLoading && locationSupported" round dense flat icon="location_on" @click="getLocation"/>
+            <q-btn
+              v-if="!locationLoading && locationSupported"
+              round
+              dense
+              flat
+              icon="location_on"
+              @click="getLocation"
+            />
           </template>
         </q-input>
       </div>
       <div class="row justify-center q-mt-lg">
-        <q-btn unelevated rounded color="primary" label="Post Image" />
+        <q-btn
+          unelevated
+          rounded
+          color="primary"
+          label="Post Image"
+          @click="addPost()"
+        />
       </div>
     </div>
   </q-page>
@@ -67,7 +80,7 @@ export default {
   data() {
     return {
       post: {
-        di: uid(),
+        id: uid(),
         caption: "",
         location: "",
         photo: null,
@@ -87,13 +100,13 @@ export default {
   },
   computed: {
     locationSupported() {
-      if ('geolocation' in navigator) return true
-      return false
-    }
+      if ("geolocation" in navigator) return true;
+      return false;
+    },
   },
-  beforeDestroy () {
-    if(this.hasCameraSupport){
-      this.disableCamera()
+  beforeDestroy() {
+    if (this.hasCameraSupport) {
+      this.disableCamera();
     }
   },
   methods: {
@@ -121,7 +134,7 @@ export default {
 
       this.imageCaptured = true;
       this.post.photo = this.dataURltoBlob(canvas.toDataURL());
-      this.disableCamera()
+      this.disableCamera();
     },
     captureImageFallback(file) {
       this.post.photo = file;
@@ -142,10 +155,10 @@ export default {
       };
       reader.readAsDataURL(file);
     },
-    disableCamera () {
-      this.$refs.video.srcObject.getVideoTracks().forEach(track => {
-        track.stop()
-      })
+    disableCamera() {
+      this.$refs.video.srcObject.getVideoTracks().forEach((track) => {
+        track.stop();
+      });
     },
     dataURltoBlob(dataurl) {
       var arr = dataurl.split(","),
@@ -159,35 +172,57 @@ export default {
       return new Blob([u8arr], { type: mime });
     },
     getLocation() {
-      this.locationLoading = true
-      navigator.geolocation.getCurrentPosition(position => {
-        this.getCityandCountry(position)
-      }, err => {
-        console.log("🚀 ~ file: PageCamera.vue:156 ~ getLocation ~ err", err)        
-      },{ timeout: 700 })
+      this.locationLoading = true;
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          this.getCityandCountry(position);
+        },
+        (err) => {
+          console.log("🚀 ~ file: PageCamera.vue:156 ~ getLocation ~ err", err);
+        },
+        { timeout: 700 }
+      );
     },
-    getCityandCountry (position){
-      let apiUrl = `https://geocode.xyz/${position.coords.latitude},${position.coords.longitude}?json=1&auth=244420314247103256360x125096`
-      this.$axios.get(apiUrl).then(result => {
-        this.locationSuccess(result)
-      }).catch(err => {
-        this.locationError()
-      })
+    getCityandCountry(position) {
+      let apiUrl = `https://geocode.xyz/${position.coords.latitude},${position.coords.longitude}?json=1&auth=254353328905860320561x81846`;
+      this.$axios
+        .get(apiUrl)
+        .then((result) => {
+          this.locationSuccess(result);
+        })
+        .catch((err) => {
+          this.locationError();
+        });
     },
-    locationSuccess (result) {
-      this.post.location = result.data.city
-      if (result.data.country){
-        this.post.location += `, ${result.data.country}`
+    locationSuccess(result) {
+      this.post.location = result.data.city;
+      if (result.data.country) {
+        this.post.location += `, ${result.data.country}`;
       }
-      this.locationLoading = false
+      this.locationLoading = false;
     },
-    locationError (){
-      this.locationLoading = false
+    locationError() {
+      this.locationLoading = false;
       this.$q.dialog({
-        title: 'Error',
-        message: 'Could not find your location.'
-      })
-    }
+        title: "Error",
+        message: "Could not find your location.",
+      });
+    },
+    addPost() {
+      console.log("PPPPPPp", this.post);
+      this.$axios
+        .post(`${process.env.API}/createPost`, this.post, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        })
+        .then((result) => {
+          console.log(result, "ressss");
+        })
+        .catch((e) => {
+          console.log("eeee", e);
+        });
+    },
   },
 };
 </script>

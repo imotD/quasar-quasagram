@@ -107,7 +107,7 @@ export default {
       this.loadingPost = true;
 
       this.$axios
-        .get("http://localhost:3000/posts")
+        .get(`${process.env.API}/posts`)
         .then((res) => {
           this.posts = res.data;
           this.loadingPost = false;
@@ -116,7 +116,7 @@ export default {
           this.loadingPost = false;
           this.$q.dialog({
             title: "Error",
-            message: e,
+            message: "Cloud not download Posts",
           });
         });
     },
