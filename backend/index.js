@@ -38,14 +38,11 @@ app.post("/createPost", (req, res) => {
   res.set("Access-Control-Allow-Origin", "*");
 
   const bb = busboy({ headers: req.headers });
+  let fields = {};
+
   bb.on("file", (name, file, info) => {
     const { filename, encoding, mimeType } = info;
-    console.log(
-      `File [${name}]: filename: %j, encoding: %j, mimeType: %j`,
-      filename,
-      encoding,
-      mimeType
-    );
+
     file
       .on("data", (data) => {
         console.log(`File [${name}] got ${data.length} bytes`);
@@ -54,17 +51,26 @@ app.post("/createPost", (req, res) => {
         console.log(`File [${name}] done`);
       });
   });
+
   bb.on("field", (name, val, info) => {
-    console.log(`Field [${name}]: value: %j`, val);
+    fields[name] = val;
   });
+
   bb.on("close", () => {
-    console.log("Done parsing form!");
-    // res.writeHead(303, { Connection: "close", Location: "/" });
+    db.collection("posts")
+      .doc(fields?.id)
+      .set({
+        id: fields.id,
+        date: parseInt(fields.date),
+        caption: fields.caption,
+        location: fields.location,
+        imageUrl:
+          "https://firebasestorage.googleapis.com/v0/b/quasagram-cbfcd.appspot.com/o/piramida%20freelance.jpeg?alt=media&token=7c2a3f53-cd60-416e-b6bc-2a2a183a7763",
+      });
+
     res.send("Done parsing form!");
   });
   req.pipe(bb);
-
-  // res.send(req.headers);
 });
 
 app.listen(port);

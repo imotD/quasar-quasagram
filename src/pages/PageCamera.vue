@@ -122,6 +122,7 @@ export default {
           this.hasCameraSupport = false;
         });
     },
+
     captureImage() {
       let video = this.$refs.video;
       let canvas = this.$refs.canvas;
@@ -136,6 +137,7 @@ export default {
       this.post.photo = this.dataURltoBlob(canvas.toDataURL());
       this.disableCamera();
     },
+
     captureImageFallback(file) {
       this.post.photo = file;
 
@@ -155,11 +157,13 @@ export default {
       };
       reader.readAsDataURL(file);
     },
+
     disableCamera() {
       this.$refs.video.srcObject.getVideoTracks().forEach((track) => {
         track.stop();
       });
     },
+
     dataURltoBlob(dataurl) {
       var arr = dataurl.split(","),
         mime = arr[0].match(/:(.*?);/)[1],
@@ -171,6 +175,7 @@ export default {
       }
       return new Blob([u8arr], { type: mime });
     },
+
     getLocation() {
       this.locationLoading = true;
       navigator.geolocation.getCurrentPosition(
@@ -183,6 +188,7 @@ export default {
         { timeout: 700 }
       );
     },
+
     getCityandCountry(position) {
       let apiUrl = `https://geocode.xyz/${position.coords.latitude},${position.coords.longitude}?json=1&auth=254353328905860320561x81846`;
       this.$axios
@@ -194,6 +200,7 @@ export default {
           this.locationError();
         });
     },
+
     locationSuccess(result) {
       this.post.location = result.data.city;
       if (result.data.country) {
@@ -201,6 +208,7 @@ export default {
       }
       this.locationLoading = false;
     },
+
     locationError() {
       this.locationLoading = false;
       this.$q.dialog({
@@ -208,8 +216,8 @@ export default {
         message: "Could not find your location.",
       });
     },
+
     addPost() {
-      console.log("PPPPPPp", this.post);
       this.$axios
         .post(`${process.env.API}/createPost`, this.post, {
           headers: {
