@@ -1,20 +1,29 @@
 // CONFIG - DEPENDENCIES
 const express = require("express");
 const busboy = require("busboy");
+
+const path = require("path");
+const os = require("os");
+const fs = require("fs");
+let UUID = require("uuid-v4");
+
 const app = express();
 const port = process.env.PORT || 3000;
 
 const { initializeApp, cert } = require("firebase-admin/app");
 const { getFirestore } = require("firebase-admin/firestore");
+const { getStorage } = require("firebase-admin/storage");
 
 // CONFIG - FIREBASE
 const serviceAccount = require("./serviceAccountKey.json");
 
 initializeApp({
   credential: cert(serviceAccount),
+  storageBucket: "gs://quasagram-cbfcd.appspot.com",
 });
 
 const db = getFirestore();
+let bucket = getStorage().bucket();
 
 // CONFIG - ENDPOINT POST
 app.get("/posts", (req, res) => {
@@ -37,19 +46,19 @@ app.get("/posts", (req, res) => {
 app.post("/createPost", (req, res) => {
   res.set("Access-Control-Allow-Origin", "*");
 
+  const uuid = UUID();
   const bb = busboy({ headers: req.headers });
+
   let fields = {};
+  let fileData = {};
 
   bb.on("file", (name, file, info) => {
     const { filename, encoding, mimeType } = info;
 
-    file
-      .on("data", (data) => {
-        console.log(`File [${name}] got ${data.length} bytes`);
-      })
-      .on("close", () => {
-        console.log(`File [${name}] done`);
-      });
+    let filepath = path.join(os.tmpdir(), filename);
+
+    file.pipe(fs.createWriteStream(filepath));
+    fileData = { filepath, mimeType };
   });
 
   bb.on("field", (name, val, info) => {
@@ -57,19 +66,40 @@ app.post("/createPost", (req, res) => {
   });
 
   bb.on("close", () => {
-    db.collection("posts")
-      .doc(fields?.id)
-      .set({
-        id: fields.id,
-        date: parseInt(fields.date),
-        caption: fields.caption,
-        location: fields.location,
-        imageUrl:
-          "https://firebasestorage.googleapis.com/v0/b/quasagram-cbfcd.appspot.com/o/piramida%20freelance.jpeg?alt=media&token=7c2a3f53-cd60-416e-b6bc-2a2a183a7763",
-      });
+    bucket.upload(
+      fileData.filepath,
+      {
+        upload: "media",
+        metadata: {
+          metadata: {
+            contentType: fileData.mimeType,
+            firebaseStorageDownloadTokens: uuid,
+          },
+        },
+      },
+      (err, uploadedFile) => {
+        if (!err) {
+          createDocument(uploadedFile);
+        }
+      }
+    );
 
-    res.send("Done parsing form!");
+    function createDocument(uploadedFile) {
+      db.collection("posts")
+        .doc(fields.id)
+        .set({
+          id: fields.id,
+          date: parseInt(fields.date),
+          caption: fields.caption,
+          location: fields.location,
+          imageUrl: `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${uploadedFile.name}?alt=media&token=${uuid}`,
+        })
+        .then(() => {
+          res.send("Post added: " + fields.id);
+        });
+    }
   });
+
   req.pipe(bb);
 });
 
