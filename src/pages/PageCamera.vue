@@ -16,6 +16,7 @@
         size="lg"
         round
         icon="photo_camera"
+        :disabled="imageCaptured"
         @click="captureImage"
       />
       <q-file
@@ -65,6 +66,8 @@
           rounded
           color="primary"
           label="Post Image"
+          :loading="submitLoading"
+          :disabled="!post.caption || !post.photo"
           @click="addPost()"
         />
       </div>
@@ -91,6 +94,7 @@ export default {
       hasCameraSupport: true,
 
       locationLoading: false,
+      submitLoading: false,
 
       imageUpload: [],
     };
@@ -218,17 +222,30 @@ export default {
     },
 
     addPost() {
+      this.submitLoading = true;
+
       this.$axios
-        .post(`${process.env.API}/createPost`, this.post, {
+        .post(`${process.env.API}/createPostw`, this.post, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
         })
         .then((result) => {
-          console.log(result, "ressss");
+          this.$router.push("/");
+
+          this.$q.notify({
+            message: "Post created",
+            color: "secondary",
+          });
         })
         .catch((e) => {
-          console.log("eeee", e);
+          this.$q.dialog({
+            title: "Error",
+            message: "Sorry, could not create post!.",
+          });
+        })
+        .finally(() => {
+          this.submitLoading = false;
         });
     },
   },
