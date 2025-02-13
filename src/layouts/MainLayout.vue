@@ -28,11 +28,29 @@
       </q-toolbar>
     </q-header>
 
-    <q-footer class="bg-white small-screen-only" bordered>
+    <q-footer class="bg-white" bordered>
+      <div class="banner-constrain bg-primary">
+        <div class="constrain">
+          <q-banner dense inline-actions class="bg-primary text-white">
+            <q-avatar rounded color="white" size="24px">
+              <img src="../../public/icons/ms-icon-144x144.png" />
+            </q-avatar>
+
+            <span class="q-ml-sm"> Instal Quasagram ? </span>
+
+            <template v-slot:action>
+              <q-btn flat dense label="Yes" class="q-px-sm" />
+              <q-btn flat dense label="Letter" class="q-px-sm" />
+              <q-btn flat dense label="Never" class="q-px-sm" />
+            </template>
+          </q-banner>
+        </div>
+      </div>
+
       <q-tabs
         active-color="primary"
         indicator-color="transparent"
-        class="text-grey-10"
+        class="text-grey-10 small-screen-only"
       >
         <q-route-tab to="/" icon="home" />
         <q-route-tab to="/camera" icon="photo_camera" />
